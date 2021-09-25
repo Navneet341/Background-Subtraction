@@ -26,13 +26,33 @@ def baseline_bgs(args):
     #TODO complete this function
     
     frames = os.listdir(args.inp_path)
+    evals = os.listdir('COL780-A1-Data/baseline/groundtruth')
     frames.sort()
+    evals.sort()
 
     backSub = cv2.createBackgroundSubtractorMOG2()
 
+    # backSub = backSub.getDetectShadows(True)
+    
+    # backSub.nShadowDetection = 0; 
+    # backSub.fTau = 0.5;  
+
+    f=open(args.eval_frames,'r')
+    data = f.read()
+    print(data,type(data))
+    data = data.split(' ')
+    start_frame = int(data[0])
+    end_frame = int(data[1])
+
+    i = 0
+
+    # return
     for frame in frames:
+        
         print(frame)
+        out_file_name = frame
         frame = cv2.imread(args.inp_path+'/'+frame)
+        eval = cv2.imread('COL780-A1-Data/baseline/groundtruth/'+evals[i])
         
         fgMask = backSub.apply(frame)
         fgMask = cv2.medianBlur(fgMask, 7)
@@ -45,6 +65,13 @@ def baseline_bgs(args):
         
         cv2.imshow('Frame', frame)
         cv2.imshow('FG Mask', fgMask)
+        cv2.imshow('Ori Eval', eval)
+
+        
+        cv2.imwrite(args.out_path+evals[i],fgMask)
+            
+
+        i+=1
         
         keyboard = cv2.waitKey(30)
         if keyboard == 'q' or keyboard == 27:
