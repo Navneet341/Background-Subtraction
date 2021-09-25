@@ -66,21 +66,23 @@ def baseline_bgs(args):
     frames.sort()
     evals.sort()
 
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+
     bgsub1 = cv2.createBackgroundSubtractorMOG2()
     bgsub2 = cv2.createBackgroundSubtractorKNN()
 
     # Initial values of parameters
-    frame = cv2.imread(args.inp_path+'/'+frames[0])
-    K = 3
-    lambda_sq = 2.5**2
-    alpha = 0.2
-    T = 0.7
-    w = np.full((frame.shape[0],frame.shape[1],K),1/K)
-    mu = np.zeros(frame.shape+tuple([K]))
-    sigma = np.ones(w.shape)
-    sigma_sq = sigma
-    diff = frame[...,None] - mu
-    diff_sq_sum = np.sum(diff*diff,axis=2)
+    # frame = cv2.imread(args.inp_path+'/'+frames[0])
+    # K = 3
+    # lambda_sq = 2.5**2
+    # alpha = 0.2
+    # T = 0.7
+    # w = np.full((frame.shape[0],frame.shape[1],K),1/K)
+    # mu = np.zeros(frame.shape+tuple([K]))
+    # sigma = np.ones(w.shape)
+    # sigma_sq = sigma
+    # diff = frame[...,None] - mu
+    # diff_sq_sum = np.sum(diff*diff,axis=2)
 
 
     f=open(args.eval_frames,'r')
@@ -96,7 +98,8 @@ def baseline_bgs(args):
     for a in frames:
         
         
-        out_file_name = frame
+        out_file_name = a
+        frame = cv2.imread(args.inp_path+'/'+a)
         
 
         # img = cv2.imread('shadows.png', -1)
@@ -106,23 +109,30 @@ def baseline_bgs(args):
         # cv2.imwrite('shadows_out_norm.png', result_norm)
         eval = cv2.imread('COL780-A1-Data/baseline/groundtruth/'+evals[i])
         
-        gaussians = get_gaussian(diff_sq_sum,mu,sigma_sq)
-        background_gaussians_mask = get_background_gaussians(w,sigma,T)
-        update_mask, replace_mask, mask_img = get_masks(background_gaussians_mask,diff_sq_sum,lambda_sq,sigma_sq)
-        mask1 = bgsub1.apply(frame)
+        # gaussians = get_gaussian(diff_sq_sum,mu,sigma_sq)
+        # background_gaussians_mask = get_background_gaussians(w,sigma,T)
+        # update_mask, replace_mask, mask_img = get_masks(background_gaussians_mask,diff_sq_sum,lambda_sq,sigma_sq)
+        # mask1 = bgsub1.apply(frame)
         mask2 = bgsub2.apply(frame)
+        mask2 = cv2.morphologyEx(mask2, cv2.MORPH_OPEN, kernel)
+        mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernel)
+        mask2 = cv2.medianBlur(mask2, 9)
+        ret, mask2 = cv2.threshold(mask2, 100, 255, cv2.THRESH_BINARY)
         cv2.imshow('Input',frame)
-        cv2.imshow('Mask',mask_img)
-        cv2.imshow('GMM_OpenCV',mask1)
+        # cv2.imshow('Mask',mask_img)
+        # cv2.imshow('GMM_OpenCV',mask1)
         cv2.imshow('KNN_OpenCV',mask2)
+        cv2.imshow("Eval",eval)
+        if(i>=(start_frame-1)):
+            cv2.imwrite(args.out_path+evals[i],mask2)
         k = cv2.waitKey(30) & 0xff
         if k == 27:
             break
         # ret, frame = vid.read()
-        frame = cv2.imread(args.inp_path+'/'+a)
-        diff = frame[...,None] - mu
-        diff_sq_sum = np.sum(diff*diff,axis=2)
-        w, mu, sigma_sq, sigma = update(gaussians,alpha,w,mu,sigma_sq,diff_sq_sum,update_mask,replace_mask,frame)    
+        
+        # diff = frame[...,None] - mu
+        # diff_sq_sum = np.sum(diff*diff,axis=2)
+        # w, mu, sigma_sq, sigma = update(gaussians,alpha,w,mu,sigma_sq,diff_sq_sum,update_mask,replace_mask,frame)    
         
             
 
