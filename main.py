@@ -24,6 +24,33 @@ def parse_args():
 
 def baseline_bgs(args):
     #TODO complete this function
+    
+    frames = os.listdir(args.inp_path)
+    frames.sort()
+
+    backSub = cv2.createBackgroundSubtractorMOG2()
+
+    for frame in frames:
+        print(frame)
+        frame = cv2.imread(args.inp_path+'/'+frame)
+        
+        fgMask = backSub.apply(frame)
+        fgMask = cv2.medianBlur(fgMask, 7)
+        ret, fgMask = cv2.threshold(fgMask, 120, 255, cv2.THRESH_BINARY)
+    
+    
+        cv2.rectangle(frame, (10, 2), (100,20), (255,255,255), -1)
+        # cv2.putText(frame, str(capture.get(cv2.CAP_PROP_POS_FRAMES)), (15, 15),
+                # cv2.FONT_HERSHEY_SIMPLEX, 0.5 , (0,0,0))
+        
+        cv2.imshow('Frame', frame)
+        cv2.imshow('FG Mask', fgMask)
+        
+        keyboard = cv2.waitKey(30)
+        if keyboard == 'q' or keyboard == 27:
+            break
+        # cv2.imshow('image',frame)
+    cv2.destroyAllWindows()
     pass
 
 
@@ -50,6 +77,7 @@ def ptz_bgs(args):
 def main(args):
     if args.category not in "bijdp":
         raise ValueError("category should be one of b/i/j/m/p - Found: %s"%args.category)
+    print(args)
     FUNCTION_MAPPER = {
             "b": baseline_bgs,
             "i": illumination_bgs,
@@ -61,5 +89,7 @@ def main(args):
     FUNCTION_MAPPER[args.category](args)
 
 if __name__ == "__main__":
+    print('Run')
     args = parse_args()
+    print('args')
     main(args)
