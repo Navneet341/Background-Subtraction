@@ -241,6 +241,7 @@ def dynamic_bgs(args):
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     bgsub2 = cv2.createBackgroundSubtractorKNN()
+    bgsub1 = cv2.createBackgroundSubtractorKNN()
     
     f=open(args.eval_frames,'r')
     data = f.read()
@@ -256,13 +257,16 @@ def dynamic_bgs(args):
         
         out_file_name = frame
         frame = cv2.imread(args.inp_path+'/'+frame)
+        gausframe = cv2.GaussianBlur(frame, (5,5),0)
 
         # frame, alpha, beta = automatic_brightness_and_contrast(frame)
         eval = cv2.imread('COL780-A1-Data/moving_bg/groundtruth/'+evals[i])
     
         mask2 = frame
         mask2 = bgsub2.apply(frame)
+        mask1 = bgsub1.apply(gausframe)
         cv2.imshow('after bgsub',mask2)
+        cv2.imshow('gaus bgsub',mask1)
         mask2 = cv2.morphologyEx(mask2, cv2.MORPH_OPEN, kernel)
         # mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernel)
         cv2.imshow('after morp',mask2)
@@ -271,6 +275,7 @@ def dynamic_bgs(args):
         ret, mask2 = cv2.threshold(mask2, 130, 255, cv2.THRESH_BINARY)
        
         cv2.imshow('Input',frame)
+        cv2.imshow('Gaus frame',gausframe)
         cv2.imshow('KNN_OpenCV',mask2)
         cv2.imshow("Eval",eval)
 
