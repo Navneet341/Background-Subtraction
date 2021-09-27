@@ -16,6 +16,7 @@ def parse_args():
 
 def binary_mask_iou(mask1, mask2):
     mask1_area = np.count_nonzero(mask1 == 255)
+    k = (mask1_area == 0)
     mask2_area = np.count_nonzero(mask2 == 255)
     intersection = np.count_nonzero(np.logical_and(mask1==255,  mask2==255))
     union = mask1_area+mask2_area-intersection
@@ -24,7 +25,7 @@ def binary_mask_iou(mask1, mask2):
         iou = 0
     else:
         iou = intersection/union 
-    return iou
+    return iou ,k
 
 
 def main(args):
@@ -32,12 +33,19 @@ def main(args):
     # Keep only the masks for eval frames in <pred_path> and not the background (all zero) frames.
     filenames = os.listdir(args.pred_path)
     ious = []
+    cnt = 0
     for filename in filenames:
         pred_mask = cv2.imread(os.path.join(args.pred_path, filename))
         gt_mask = cv2.imread(os.path.join(args.gt_path, filename))
-        iou = binary_mask_iou(gt_mask, pred_mask)
+        # print(pred_mask.size , gt_mask.size,filename)
+        iou ,k = binary_mask_iou(gt_mask, pred_mask)
+
+        if(k == 1):
+            cnt+=1
+            # continue
         ious.append(iou)
-    print("mIOU: %.4f"%(sum(ious)/len(ious)))
+    print(cnt,len(ious))
+    print("mIOU: %.4f"%(sum(ious)/(len(ious))))
     
 
 if __name__ == "__main__":
