@@ -403,9 +403,7 @@ def ptz_bgs(args):
         cv2.fillPoly(mask2,contours,255)
         cv2.imshow('after median',mask2)
 
-       
-       
-        
+
         ret,mask2=  cv2.threshold(mask2,100,255,cv2.THRESH_BINARY)
 
         cv2.imshow('final',mask2)
